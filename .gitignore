@@ -1,0 +1,10 @@
+# Build
+node_modules/
+dist/
+
+# IntelliJ IDEA
+*.iml
+.idea/
+
+# OSX
+.DS_Store
