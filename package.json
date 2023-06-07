@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "Plugins for Hardhat",
   "main": "dist/index.js",
-  "types": "dist/src/index.d.ts",
+  "types": "dist/index.d.ts",
   "scripts": {
     "build": "tsc",
     "lint": "eslint src --max-warnings=0",
