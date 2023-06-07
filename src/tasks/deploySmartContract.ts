@@ -26,15 +26,19 @@ type TaskParams = {
  */
 function parseArgument(
   BigNumberCtor: typeof BigNumber, value: string, type: string
-): string | BigNumber | BigNumber[] {
+): string | string[] | BigNumber | BigNumber[] {
   switch (type) {
     case 'string':
     case 'address':
       return value
+    case 'string[]':
+    case 'address[]':
+      return value.split(';')
     case 'uint64':
     case 'uint256':
       return BigNumberCtor.from(value)
     case 'uint64[]':
+    case 'uint256[]':
       return value.split(';').map(arrayValue => BigNumberCtor.from(arrayValue))
     default:
       throw new Error(`Unknown type: ${type}`)
