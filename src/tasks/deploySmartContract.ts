@@ -1,7 +1,6 @@
 import { task, types } from 'hardhat/config'
-import { StringArrayArgumentType } from '../lib/StringArrayArgumentType'
-import type { BigNumber } from 'ethers'
-import { backoffRetry } from '../lib/retry'
+import type { BigNumberish } from 'ethers'
+import { StringArrayArgumentType, backoffRetry } from '../lib'
 
 type TaskParams = {
   /**
@@ -20,13 +19,12 @@ type TaskParams = {
 
 /**
  * Converts a string argument for a smart contract constructor to the required value
- * @param BigNumberCtor The BigNumber constructor to use
  * @param value The string value to parse
  * @param type The type to parse the value into
  */
 function parseArgument(
-  BigNumberCtor: typeof BigNumber, value: string, type: string
-): string | string[] | BigNumber | BigNumber[] {
+  value: string, type: string
+): BigNumberish | BigNumberish[] {
   switch (type) {
     case 'string':
     case 'address':
@@ -36,10 +34,10 @@ function parseArgument(
       return value.split(';')
     case 'uint64':
     case 'uint256':
-      return BigNumberCtor.from(value)
+      return BigInt(value)
     case 'uint64[]':
     case 'uint256[]':
-      return value.split(';').map(arrayValue => BigNumberCtor.from(arrayValue))
+      return value.split(';').map(arrayValue => BigInt(arrayValue))
     default:
       throw new Error(`Unknown type: ${type}`)
   }
@@ -57,15 +55,16 @@ task<TaskParams>(
     }
     const parsedArguments = constructorArguments.map((argument, i) => {
       const type = deployParameters[i].type
-      return parseArgument(env.ethers.BigNumber, argument, type)
+      return parseArgument(argument, type)
     })
     if (env.hardhatArguments.verbose) {
       console.log('Deploying smart contract %s with arguments %s', name, parsedArguments)
     }
     const deployed = await contract.deploy(...parsedArguments)
-    await deployed.deployed()
+    await deployed.waitForDeployment()
+    const address = await deployed.getAddress()
     if (env.hardhatArguments.verbose) {
-      console.log('Deployed smart contract to address %s', deployed.address)
+      console.log('Deployed smart contract to address %s', address)
     }
 
     if (taskArgs.verify) {
@@ -78,7 +77,7 @@ task<TaskParams>(
           // Always log this, it's not considered verbose
           console.log('Verifying deployed smart contract (potentially a retry)')
           return env.run('verify:verify', {
-            address: deployed.address,
+            address: address,
             constructorArguments: parsedArguments
           })
         },
@@ -88,7 +87,7 @@ task<TaskParams>(
       )
       // TODO log out instructions on how to retry verification if it fails even after the retries
     }
-    return deployed.address
+    return address
   }).addParam(
   'name',
   'The name of the smart contract (not the filename but the name of the contract itself)',

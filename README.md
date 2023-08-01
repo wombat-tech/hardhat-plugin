@@ -14,8 +14,10 @@ Or add to `package.json`:
 
 ```json
 {
-  "dependencies": {
-    "@spielworksdev/hardhat-plugin": "^1.0.0"
+  "devDependencies": {
+    "@nomicfoundation/hardhat-toolbox": "^3.0.0",
+    "@spielworksdev/hardhat-plugin": "^2.0.0",
+    "hardhat": "^2.17.0"
   }
 }
 ```
